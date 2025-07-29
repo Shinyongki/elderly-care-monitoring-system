@@ -70,13 +70,19 @@ export default function OfficialSurvey() {
       const data = await ExcelProcessor.readFile(file);
       const validation = ExcelProcessor.validateOfficialSurveyData(data);
       
+      console.log('File processing - validation:', validation);
+      
       if (validation.valid && validation.validRows > 0) {
         const surveys = ExcelProcessor.convertToOfficialSurveys(data);
         if (surveys.length > 0) {
           setUploadedData(surveys);
           setValidationErrors([]);
           setIsValidated(true);
-          console.log('Upload success - surveys:', surveys.length, 'validated:', true, 'errors:', []);
+          console.log('✅ File processed successfully:', {
+            surveys: surveys.length,
+            validated: true,
+            errors: []
+          });
           toast({
             title: "파일 업로드 성공",
             description: `${surveys.length}건의 설문 데이터가 검증되었습니다.`,
@@ -85,6 +91,7 @@ export default function OfficialSurvey() {
           setUploadedData([]);
           setValidationErrors(["변환 가능한 데이터가 없습니다."]);
           setIsValidated(false);
+          console.log('❌ No convertible data');
           toast({
             title: "데이터 변환 실패",
             description: "유효한 설문 데이터로 변환할 수 없습니다.",
@@ -95,6 +102,7 @@ export default function OfficialSurvey() {
         setUploadedData([]);
         setValidationErrors(validation.errors.length > 0 ? validation.errors : ["유효한 데이터가 없습니다."]);
         setIsValidated(false);
+        console.log('❌ Validation failed:', validation.errors);
         toast({
           title: "데이터 검증 실패",
           description: validation.errors.length > 0 ? `${validation.errors.length}개의 오류가 발견되었습니다.` : "유효한 데이터가 없습니다.",
@@ -103,6 +111,9 @@ export default function OfficialSurvey() {
       }
     } catch (error) {
       console.error('File processing error:', error);
+      setUploadedData([]);
+      setValidationErrors([`파일 처리 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`]);
+      setIsValidated(false);
       toast({
         title: "파일 처리 실패",
         description: "파일을 읽는 중 오류가 발생했습니다.",
@@ -112,8 +123,12 @@ export default function OfficialSurvey() {
   };
 
   const handleSave = async () => {
-    if (uploadedData.length === 0) return;
+    if (uploadedData.length === 0) {
+      console.log('❌ Save failed: No data to save');
+      return;
+    }
     
+    console.log('💾 Starting save process:', uploadedData.length, 'items');
     await saveSurveys(uploadedData);
     setUploadedData([]);
     setValidationErrors([]);
@@ -123,6 +138,7 @@ export default function OfficialSurvey() {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    console.log('✅ Save completed successfully');
   };
 
   const handleExport = () => {
@@ -157,6 +173,18 @@ export default function OfficialSurvey() {
       </Badge>
     );
   };
+
+  // 버튼 활성화 상태 확인 - 개선된 조건
+  const isSaveButtonDisabled = loading || uploadedData.length === 0 || !isValidated || validationErrors.length > 0;
+  
+  // 디버깅용 로그
+  console.log('🔘 Button state:', {
+    loading,
+    uploadedDataLength: uploadedData.length,
+    isValidated,
+    validationErrorsLength: validationErrors.length,
+    disabled: isSaveButtonDisabled
+  });
 
   return (
     <div className="w-full max-w-none">
@@ -193,7 +221,10 @@ export default function OfficialSurvey() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => ExcelProcessor.downloadOfficialSurveyTemplate()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    ExcelProcessor.downloadOfficialSurveyTemplate();
+                  }}
                   className="mb-2"
                 >
                   템플릿 다운로드
@@ -349,12 +380,9 @@ export default function OfficialSurvey() {
                 <div className="flex items-center space-x-2">
                   {uploadedData.length > 0 && (
                     <Button 
-                      onClick={() => {
-                        console.log('Save button clicked - loading:', loading, 'uploadedData:', uploadedData.length, 'errors:', validationErrors.length);
-                        handleSave();
-                      }}
-                      disabled={loading || uploadedData.length === 0 || !isValidated}
-                      className="bg-green-600 hover:bg-green-700"
+                      onClick={handleSave}
+                      disabled={isSaveButtonDisabled}
+                      className="bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Save className="h-4 w-4 mr-2" />
                       데이터 저장 ({uploadedData.length}건)
@@ -370,6 +398,18 @@ export default function OfficialSurvey() {
                   </Button>
                 </div>
               </div>
+              
+              {/* 디버깅 정보 (개발용) */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mt-4 p-3 bg-gray-100 rounded text-xs text-gray-600">
+                  <p><strong>디버깅 정보:</strong></p>
+                  <p>• loading: {loading ? 'true' : 'false'}</p>
+                  <p>• uploadedData: {uploadedData.length}건</p>
+                  <p>• isValidated: {isValidated ? 'true' : 'false'}</p>
+                  <p>• validationErrors: {validationErrors.length}개</p>
+                  <p>• 버튼 비활성화: {isSaveButtonDisabled ? 'true' : 'false'}</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
