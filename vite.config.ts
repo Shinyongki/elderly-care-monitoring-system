@@ -30,18 +30,14 @@ export default defineConfig({
   },
   server: {
     fs: {
-      strict: true,
-      deny: ["**/.*"],
+      strict: false,
+      allow: ['..'],
     },
-    host: '0.0.0.0',
-    port: 5173,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5000',
-        changeOrigin: true,
-      },
-    },
+    host: '127.0.0.1',
+    port: 9000,
+    strictPort: true,
     hmr: {
+      port: 9000,
       overlay: false,
     },
   },

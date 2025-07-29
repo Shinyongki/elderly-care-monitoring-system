@@ -76,8 +76,10 @@ export function useOfficialSurveys() {
 
   const saveSurveys = async (surveys: OfficialSurvey[]) => {
     try {
+      setLoading(true);
       await storage.saveOfficialSurveys(surveys);
-      await loadSurveys();
+      const updatedData = await storage.getOfficialSurveys();
+      setSurveys(updatedData);
       toast({
         title: "저장 완료",
         description: `${surveys.length}건의 공무원 설문이 저장되었습니다.`,
@@ -89,6 +91,8 @@ export function useOfficialSurveys() {
         description: "설문 일괄 저장에 실패했습니다.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -106,14 +110,18 @@ export function useOfficialSurveys() {
       }
     };
 
-    return {
-      surveys,
-      loading,
-      saveSurvey,
-      saveSurveys,
-      deleteSurvey,
-      reload: loadSurveys,
-    };
+  useEffect(() => {
+    loadSurveys();
+  }, []);
+
+  return {
+    surveys,
+    loading,
+    saveSurvey,
+    saveSurveys,
+    deleteSurvey,
+    reload: loadSurveys,
+  };
 }
 
 export function useElderlySurveys() {
