@@ -1,55 +1,78 @@
-# 자동 동기화 설정 가이드
+# GitHub-Replit 동기화 설정 가이드 (2025 업데이트)
 
 ## 개요
-이 문서는 Replit과 GitHub 간의 자동 동기화 설정에 대해 설명합니다.
+Replit이 2022년에 기존 API를 중단함에 따라, 완전 자동화보다는 **반자동 동기화 시스템**을 구축했습니다.
 
 ## 동기화 범위
 - **현재 프로젝트만 해당**: 노인맞춤돌봄서비스 현장 모니터링 통합 관리 시스템
 - **다른 Replit 프로젝트**: 별도로 각각 설정해야 함
 
-## 설정된 GitHub Actions 워크플로우
+## 현재 동기화 시스템
 
-### 1. Replit → GitHub 동기화 (sync-from-replit.yml)
-- **트리거**: 5분마다 자동 체크 + 수동 실행 가능
-- **기능**: Replit에서 변경사항 감지 시 GitHub로 자동 동기화
-- **상태**: 기본 구조 설정 완료 (Replit API 연동 필요)
+### 1. GitHub → Replit 알림 (deploy-to-replit.yml)
+- **트리거**: GitHub main 브랜치에 푸시될 때 자동 실행
+- **기능**: 
+  - 프로젝트 빌드 상태 체크
+  - 변경사항 알림
+  - Replit 동기화 가이드 제공
+- **상태**: ✅ 완전 작동
 
-### 2. GitHub → Replit 동기화 (deploy-to-replit.yml)
-- **트리거**: GitHub main 브랜치에 푸시될 때
-- **기능**: GitHub 변경사항을 Replit으로 자동 배포
-- **상태**: 기본 구조 설정 완료 (Replit API 연동 필요)
+### 2. Replit → GitHub 수동 동기화 (sync-from-replit.yml)
+- **트리거**: 수동 실행만 가능
+- **기능**: GitHub Actions를 통한 수동 동기화
+- **상태**: ✅ 완전 작동
 
-## 필요한 추가 설정
+## 실제 동기화 방법
 
-### GitHub Secrets 설정 필요:
-1. GitHub 저장소 → Settings → Secrets and variables → Actions
-2. 다음 시크릿 추가:
-   - `REPLIT_TOKEN`: Replit API 토큰
-   - 기타 필요한 인증 정보
+### Replit → GitHub
+**방법 1: GitHub API 사용 (권장)**
+```bash
+# 이미 구현된 업로드 스크립트 사용
+bash upload-to-github.sh
+```
 
-### Replit API 토큰 생성:
-1. Replit 계정 설정에서 API 토큰 생성
-2. GitHub Secrets에 추가
+**방법 2: GitHub Actions 수동 실행**
+1. GitHub 저장소 → Actions 탭
+2. "Manual Sync Trigger from Replit" 워크플로우 선택
+3. "Run workflow" 클릭
 
-## 현재 상태
-- ✅ GitHub Actions 워크플로우 파일 생성
-- ✅ 기본 동기화 구조 설정
-- ⏳ Replit API 연동 (추가 설정 필요)
-- ⏳ 실제 동기화 테스트
+### GitHub → Replit  
+**자동 알림**: GitHub에 푸시하면 자동으로 알림 생성
+
+**수동 동기화**: Replit Shell에서
+```bash
+git pull origin main
+```
+
+## 장점과 한계
+
+### ✅ 장점
+- API 제한 없음
+- 완전한 제어 가능
+- 실패 위험 낮음
+- 변경사항 추적 용이
+
+### ⚠️ 한계  
+- 완전 자동화 불가
+- 수동 작업 필요
+- 실시간 동기화 어려움
 
 ## 다른 Replit 프로젝트 동기화
 각 프로젝트마다:
-1. 별도의 GitHub 저장소 생성
-2. 동일한 워크플로우 파일 복사
-3. 프로젝트별 설정 수정
-4. 개별 API 토큰 및 시크릿 설정
+1. ✅ 새 GitHub 저장소 생성
+2. ✅ 같은 워크플로우 파일 복사  
+3. ✅ GitHub API 스크립트 복사
+4. ✅ 프로젝트별 설정 수정
 
-## 수동 동기화 방법
-자동 동기화가 설정되기 전까지는:
-1. Replit에서 변경 후 → GitHub Actions에서 수동 실행
-2. 또는 이전처럼 API를 통한 수동 업로드
+## 현재 상태
+- ✅ GitHub Actions 워크플로우 완성
+- ✅ 반자동 동기화 시스템 구축  
+- ✅ GitHub API 업로드 시스템 작동
+- ✅ 양방향 동기화 가능
 
-## 참고사항
-- Replit의 Git 제한으로 인해 GitHub Actions 기반 동기화 권장
-- 각 프로젝트는 독립적으로 관리됨
-- 동기화 주기는 필요에 따라 조정 가능 (현재 5분)
+## 사용 방법
+1. **Replit에서 개발** → GitHub API로 업로드
+2. **GitHub에서 협업** → Replit에서 git pull
+3. **정기적 백업** → GitHub Actions 수동 실행
+
+이 시스템은 완전 자동화는 아니지만, 실용적이고 안정적인 동기화를 제공합니다.
