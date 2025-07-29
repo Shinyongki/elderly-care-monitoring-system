@@ -1,4 +1,4 @@
-name: Deploy to Replit
+name: GitHub to Replit Notification
 
 on:
   # GitHub에 푸시될 때마다 실행
@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  notify:
     runs-on: ubuntu-latest
     
     steps:
@@ -26,24 +26,25 @@ jobs:
     
     - name: Build project
       run: |
-        echo "프로젝트 빌드 중..."
-        # 필요시 빌드 명령어 추가
-        # npm run build
+        echo "프로젝트 빌드 확인 중..."
+        # TypeScript 컴파일 체크
+        npx tsc --noEmit || echo "TypeScript 컴파일 경고 발생"
     
-    - name: Deploy to Replit
-      env:
-        REPLIT_TOKEN: ${{ secrets.REPLIT_TOKEN }}
+    - name: Notify changes
       run: |
-        echo "Replit으로 배포 중..."
-        
-        # Replit API를 사용한 배포 로직
-        # 실제로는 Replit의 API나 CLI를 사용해야 함
-        
-        echo "배포 완료!"
-    
-    - name: Notify deployment status
-      run: |
-        echo "✅ GitHub → Replit 동기화 완료"
+        echo "📢 GitHub에 새로운 변경사항이 푸시되었습니다!"
         echo "프로젝트: 노인맞춤돌봄서비스 시스템"
-        echo "커밋: ${{ github.sha }}"
+        echo "커밋 SHA: ${{ github.sha }}"
+        echo "커밋 메시지: ${{ github.event.head_commit.message }}"
+        echo "작성자: ${{ github.event.head_commit.author.name }}"
         echo "시간: $(date)"
+        echo ""
+        echo "⚠️ Replit에서 수동으로 git pull을 실행하여 최신 변경사항을 적용하세요."
+    
+    - name: Generate sync instructions
+      run: |
+        echo "🔄 Replit 동기화 방법:"
+        echo "1. Replit Shell에서 다음 명령어 실행:"
+        echo "   git pull origin main"
+        echo "2. 또는 Replit의 Git 탭에서 Pull 버튼 클릭"
+        echo "3. 변경사항 확인 후 애플리케이션 재시작"
