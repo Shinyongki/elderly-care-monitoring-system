@@ -1,0 +1,61 @@
+name: Auto Sync from Replit
+
+on:
+  # 매 5분마다 체크 (필요에 따라 조정 가능)
+  schedule:
+    - cron: '*/5 * * * *'
+  
+  # 수동 실행도 가능
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    - name: Check for Replit changes
+      id: check_changes
+      run: |
+        # Replit의 변경사항을 체크하는 로직
+        # 실제로는 Replit API나 웹훅을 통해 변경사항을 감지
+        echo "변경사항 체크 중..."
+        
+        # 예시: 특정 파일의 마지막 수정 시간 체크
+        # 실제 구현시에는 Replit API를 사용하거나 
+        # 다른 동기화 메커니즘을 사용해야 함
+        
+        echo "changes_detected=false" >> $GITHUB_OUTPUT
+    
+    - name: Sync changes if detected
+      if: steps.check_changes.outputs.changes_detected == 'true'
+      run: |
+        echo "Replit에서 변경사항이 감지되었습니다. 동기화를 진행합니다."
+        
+        # 실제 동기화 로직은 여기에 구현
+        # Replit API를 통해 파일들을 가져와서 업데이트
+        
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # 변경사항이 있다면 커밋하고 푸시
+        if [[ -n $(git status --porcelain) ]]; then
+          git add .
+          git commit -m "Auto sync from Replit - $(date)"
+          git push
+        fi
+    
+    - name: No changes detected
+      if: steps.check_changes.outputs.changes_detected == 'false'
+      run: |
+        echo "변경사항이 없습니다. 동기화를 건너뜁니다."
