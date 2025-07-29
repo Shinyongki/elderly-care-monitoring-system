@@ -1,12 +1,13 @@
-name: Auto Sync from Replit
+name: Manual Sync Trigger from Replit
 
 on:
-  # 매 5분마다 체크 (필요에 따라 조정 가능)
-  schedule:
-    - cron: '*/5 * * * *'
-  
-  # 수동 실행도 가능
+  # 수동 실행만 가능 (Replit API 중단으로 인해)
   workflow_dispatch:
+    inputs:
+      sync_message:
+        description: '동기화 커밋 메시지'
+        required: false
+        default: 'Manual sync from Replit'
 
 jobs:
   sync:
@@ -24,38 +25,16 @@ jobs:
       with:
         node-version: '20'
     
-    - name: Check for Replit changes
-      id: check_changes
+    - name: Manual sync notification
       run: |
-        # Replit의 변경사항을 체크하는 로직
-        # 실제로는 Replit API나 웹훅을 통해 변경사항을 감지
-        echo "변경사항 체크 중..."
+        echo "🔄 수동 동기화를 실행합니다."
+        echo "메시지: ${{ github.event.inputs.sync_message }}"
+        echo "실행자: ${{ github.actor }}"
+        echo "시간: $(date)"
         
-        # 예시: 특정 파일의 마지막 수정 시간 체크
-        # 실제 구현시에는 Replit API를 사용하거나 
-        # 다른 동기화 메커니즘을 사용해야 함
+        # 실제 동기화가 필요한 경우 여기에 추가 로직 구현
+        # 예: 특정 브랜치에서 변경사항 가져오기
         
-        echo "changes_detected=false" >> $GITHUB_OUTPUT
-    
-    - name: Sync changes if detected
-      if: steps.check_changes.outputs.changes_detected == 'true'
+    - name: Sync completed
       run: |
-        echo "Replit에서 변경사항이 감지되었습니다. 동기화를 진행합니다."
-        
-        # 실제 동기화 로직은 여기에 구현
-        # Replit API를 통해 파일들을 가져와서 업데이트
-        
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        
-        # 변경사항이 있다면 커밋하고 푸시
-        if [[ -n $(git status --porcelain) ]]; then
-          git add .
-          git commit -m "Auto sync from Replit - $(date)"
-          git push
-        fi
-    
-    - name: No changes detected
-      if: steps.check_changes.outputs.changes_detected == 'false'
-      run: |
-        echo "변경사항이 없습니다. 동기화를 건너뜁니다."
+        echo "✅ 동기화 완료"
