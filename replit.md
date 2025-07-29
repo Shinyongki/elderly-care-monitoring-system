@@ -115,3 +115,9 @@ Preferred communication style: Simple, everyday language.
 - Modular architecture for easy feature additions
 - Abstracted storage layer for database flexibility
 - Component-based UI for maintainable frontend development
+
+## Recent Changes
+- **2025-07-29**: GitHub 저장소 연동 완료
+  - Repository: https://github.com/Shinyongki/elderly-care-monitoring-system
+  - 기본 프로젝트 파일들 (README.md, package.json, .gitignore, 설정 파일들) 업로드 완료
+  - GitHub API를 통한 자동화된 파일 업로드 시스템 구현
